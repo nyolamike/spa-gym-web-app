@@ -1,7 +1,15 @@
 <script setup>
+import { ref } from "vue";
 import PhoneNumberInput from "../../components/molecules/inputs/PhoneNumberInput.vue";
 import PasswordInput from "../../components/molecules/inputs/PasswordInput.vue";
 import Button from "../../components/molecules/atoms/Button.vue";
+
+const password = ref({
+  value: "",
+  isValid: null,
+  validationRules: [],
+  errors: []
+});
 </script>
 
 <template>
@@ -43,7 +51,9 @@ import Button from "../../components/molecules/atoms/Button.vue";
             <form action="#" method="POST" class="space-y-6">
               <PhoneNumberInput :isLoading="true" />
 
-              <PasswordInput :isLoading="true" />
+              {{password}}
+
+              <PasswordInput id="login-password" :isLoading="false" v-model="password" />
 
               <div class="flex items-center justify-between">
                 <div class="flex gap-3">
