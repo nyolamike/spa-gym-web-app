@@ -1,15 +1,52 @@
 <script setup>
 import { ref } from "vue";
+import { provide } from 'vue';
+import { formField } from '../../utils/'
+import { validateForm, clearFormErrors } from "../../utils/validate"
+
 import PhoneNumberInput from "../../components/molecules/inputs/PhoneNumberInput.vue";
 import PasswordInput from "../../components/molecules/inputs/PasswordInput.vue";
-import Button from "../../components/molecules/atoms/Button.vue";
+import FormButton from "../../components/molecules/atoms/FormButton.vue";
 
-const password = ref({
-  value: "",
+
+const formKey = 'login-form';
+const loginForm = ref({
+  fields: {
+    phoneNumber: formField(),
+    password: formField({
+      validate: {
+        minLength: {
+          value: 4,
+          error: "Password must be at least 4 characters long"
+        },
+        maxLength: {
+          value: 15,
+          error: "Password cannot exceed 15 characters."
+        }
+      }
+    }),
+  },
   isValid: null,
-  validationRules: [],
-  errors: []
+  errors: [],
+  isLoading: false
 });
+
+provide(formKey, loginForm)
+
+const onClickSubmit = (event) => {
+  loginForm.value.isLoading = true;
+  //validate
+  loginForm.value = validateForm({... loginForm.value});
+  loginForm.value.isLoading = false;
+  console.log(loginForm.value);
+}
+
+const onClickErrors  = (event) => {
+  loginForm.value = clearFormErrors({... loginForm.value});
+  console.log(loginForm.value);
+}
+
+
 </script>
 
 <template>
@@ -48,12 +85,11 @@ const password = ref({
 
         <div class="mt-10">
           <div>
-            <form action="#" method="POST" class="space-y-6">
-              <PhoneNumberInput :isLoading="true" />
+            <form class="space-y-6">
+              <!-- <PhoneNumberInput :isLoading="true" /> -->
 
-              {{password}}
-
-              <PasswordInput id="login-password" :isLoading="false" v-model="password" />
+              {{loginForm?.fields?.password?.value}}
+              <PasswordInput :formKey="formKey" field="password" />
 
               <div class="flex items-center justify-between">
                 <div class="flex gap-3">
@@ -102,7 +138,7 @@ const password = ref({
               </div>
 
               <div>
-                <Button :isLoading="true">Sign In</Button>
+                <FormButton :formKey="formKey" @onClickSubmit="onClickSubmit" @onClickClearErrors="onClickErrors" >Sign In</FormButton>
               </div>
             </form>
           </div>

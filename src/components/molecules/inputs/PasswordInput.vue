@@ -1,65 +1,53 @@
 <script setup>
+import { inject, computed } from 'vue'
+
 import InputLabel from "../atoms/InputLabel.vue";
+import BaseTextInput from "../atoms/BaseTextInput.vue";
 const props = defineProps({
-  isLoading: {
-    type: Boolean,
-    default: false,
-  },
-  isDisabled: {
-    type: Boolean,
-    default: false,
-  },
-  isRequired: {
-    type: Boolean,
-    default: true,
-  },
-  placeholder: {
-    type: String,
-    default: "",
-  },
-  id: {
+  formKey: {
     type: String,
     required: true,
   },
+  field: {
+    type: String,
+    required: true,
+  }
 });
 
-const model = defineModel({
-  default: {
-    value: "",
-    isValid: null,
-    validationRules: [],
-    errors: [],
-  },
-});
+const injectedForm = inject(props.formKey)
 
-function update(event) {
-  model.value = {
-    ...model.value,
-    value: event.target.value,
-  };
+const defaultId = `${props.formKey}-${props.field}`
+
+const onInput = (value) => {
+  injectedForm.value.fields[props.field].value = value;
 }
+
 </script>
 
 <template>
   <div>
-    <InputLabel :forHtml="id">Password</InputLabel>
+    <InputLabel :forHtml="injectedForm?.fields?.[field]?.id??defaultId">
+      Password
+      <span v-if="injectedForm?.fields?.[field]?.isRequired??true" class="text-red-500">*</span>
+    </InputLabel>
     <div class="">
-      <!-- autocomplete="current-password" -->
-      <input
+      <!-- 
+        todo: add this attribute
+        autocomplete="current-password" 
+      -->
+      <BaseTextInput
         type="password"
-        :name="id"
-        :id="id"
-        :required="isRequired"
-        :placeholder="placeholder"
-        :class="[
-          'block w-full rounded-md px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6',
-          isLoading || isDisabled
-            ? 'cursor-not-allowed bg-gray-100 '
-            : 'bg-white ',
-        ]"
-        :disabled="isLoading || isDisabled"
-        @input.stop.prevent="update"
+        :id="injectedForm?.fields?.[field]?.id??defaultId"
+        :required="injectedForm?.fields?.[field]?.isRequired??true"
+        :placeholder="injectedForm?.fields?.[field]?.placeholder??''"
+        :isDisabled="(injectedForm?.isLoading??false) || ((injectedForm?.fields?.[field]?.isValid??null) === false) || (injectedForm?.fields?.[field]?.isDisabled??false)"
+        @input="onInput"
+        :value="injectedForm?.fields?.[field]?.value??''"
+        :isValid="injectedForm?.fields?.[field]?.isValid??null"
       />
     </div>
+    <small v-if="(injectedForm?.fields?.[field]?.errors?.length??0) > 0" class="text-red-500 text-xs mt-1">
+      {{ injectedForm?.fields?.[field]?.errors[0] }}
+    </small>
   </div>
 </template>
